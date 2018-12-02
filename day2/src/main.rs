@@ -35,7 +35,34 @@ fn task1(s: &str) {
     }
 
     let result = threes * twos;
-    println!("Result: {}", result);
+    println!("First task result: {}", result);
+}
+
+fn get_common_part(s1: &str, s2: &str) -> String {
+    let mut result = String::new();
+    for (c1, c2) in s1.chars().zip(s2.chars()) {
+        if c1 == c2 {
+            result.push(c1);
+        }
+    }
+
+    result
+}
+
+fn task2(s: &str) {
+    let lines = s.lines();
+    'outer: for (i, l1) in lines.clone().enumerate() {
+        let other_lines = lines.clone().skip(i);
+
+        for l2 in other_lines {
+            let common_part = &get_common_part(l1, l2);
+
+            if l1.len() - common_part.len() == 1 {
+                println!("Common part: {}", common_part);
+                break 'outer;
+            }
+        }
+    }
 }
 
 fn main() {
@@ -46,4 +73,5 @@ fn main() {
         .expect("something went wrong reading the file");
 
     task1(&contents);
+    task2(&contents);
 }

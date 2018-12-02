@@ -3,4 +3,5 @@
 This repository contains my attempts to implement AoC challenges.
 Having fun while learning some programming languages
 
-- Day1: `rust`
+- Day 1: `rust`
+- Day 2: `rust`
