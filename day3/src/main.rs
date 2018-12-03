@@ -14,9 +14,10 @@ struct Claim {
     height: i32,
 }
 
-fn task1(s: &str) {
+fn task(s: &str) {
     let lines = s.lines();
-    let mut field = HashMap::new();
+    let mut field: HashMap<(i32, i32), Vec<i32>> = HashMap::new();
+    let mut claims = HashMap::new();
 
     for line in lines {
         let re = Regex::new(r"^#(\d+)\s@\s(\d+),(\d+): (\d+)x(\d+)$").unwrap();
@@ -41,19 +42,40 @@ fn task1(s: &str) {
 
                 field
                     .entry(coords)
-                    .and_modify(|e| *e = true)
-                    .or_insert(false);
+                    .and_modify(|v| v.push(claim.id))
+                    .or_insert(vec![claim.id]);
             }
         }
     }
 
-    let values: Vec<_> = field
+    let count = field
         .iter()
-        .filter(|(key, value)| **value)
+        .filter(|x| x.1.len() > 1)
         .map(|x| x.0)
-        .collect();
+        .collect::<Vec<_>>()
+        .len();
 
-    println!("First task result: {}", values.len());
+    println!("Amount of overlapping claims: {}", count);
+
+    for ids in field.values() {
+        if ids.len() > 1 {
+            for id in ids {
+                claims.insert(id, false);
+            }
+        } else {
+            for id in ids {
+                claims.entry(id).or_insert(true);
+            }
+        }
+    }
+
+    let proper_claims = claims
+        .iter()
+        .filter(|x| *x.1)
+        .map(|x| x.0)
+        .collect::<Vec<_>>();
+
+    println!("Proper claims: {:#?}", proper_claims);
 }
 
 fn main() {
@@ -63,5 +85,5 @@ fn main() {
     f.read_to_string(&mut contents)
         .expect("something went wrong reading the file");
 
-    task1(&contents);
+    task(&contents);
 }
