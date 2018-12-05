@@ -4,6 +4,7 @@ extern crate chrono;
 
 use chrono::prelude::*;
 use nom::digit;
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::prelude::*;
 use std::str::FromStr;
@@ -20,6 +21,13 @@ struct ParsedLine {
     date: NaiveDate,
     minute: i32,
     action: Action,
+}
+
+#[derive(Debug)]
+struct Guard {
+    id: i32,
+    minutes: HashMap<i32, i32>,
+    total_asleep: i32,
 }
 
 named!(process_action<&str,Action>,
@@ -74,12 +82,68 @@ named!(process_line<&str,ParsedLine>,
 );
 
 fn task(s: &str) {
-    let lines = s.lines();
+    let mut guards: HashMap<i32, Guard> = HashMap::new();
+    let mut guard_id = None;
+    let mut start = None;
 
-    for line in lines.take(10) {
-        let parsed_line = process_line(line);
-        println!("{:#?}", parsed_line);
+    let mut lines = s.lines().collect::<Vec<_>>();
+
+    lines.sort();
+
+    let logs = lines
+        .iter()
+        .filter_map(|line| process_line(line).ok())
+        .map(|x| x.1);
+
+    for log in logs {
+        match log.action {
+            Action::ShiftStarted(id) => {
+                guards.entry(id).or_insert(Guard {
+                    id,
+                    minutes: HashMap::new(),
+                    total_asleep: 0,
+                });
+
+                guard_id = Some(id);
+            }
+            Action::FellAsleep => {
+                start = Some(log.minute);
+            }
+            Action::WokeUp => {
+                let pair = start.and_then(|s| guard_id.and_then(|i| Some((i, s))));
+                match pair {
+                    Some((id, start_m)) => {
+                        let end = log.minute;
+                        start = None;
+
+                        let range = start_m..end;
+                        for m in range {
+                            guards.entry(id).and_modify(|e| {
+                                e.minutes.entry(m).and_modify(|m| *m += 1).or_insert(1);
+                                e.total_asleep += 1;
+                            });
+                        }
+                    }
+                    _ => {}
+                }
+            }
+        }
     }
+
+    let mut scores = guards.values().clone().into_iter().collect::<Vec<_>>();
+    scores.sort_by(|a, b| b.total_asleep.cmp(&a.total_asleep));
+    let sleepy_guard = scores.get(0).unwrap();
+
+    let mut minutes = sleepy_guard.minutes.iter().collect::<Vec<_>>();
+    minutes.sort_by(|a, b| b.1.cmp(a.1));
+    let lucky_minute = minutes.get(0).unwrap().0;
+
+    println!(
+        "Sleepy guard: {:?}, lucky minute: {:?}, result: {:?}",
+        sleepy_guard.id,
+        lucky_minute,
+        sleepy_guard.id * lucky_minute
+    );
 }
 
 fn main() {
