@@ -81,6 +81,12 @@ named!(process_line<&str,ParsedLine>,
     )
 );
 
+fn sleepy_minute(g: &Guard) -> (&i32, &i32) {
+    let mut minutes = g.minutes.iter().collect::<Vec<_>>();
+    minutes.sort_by(|a, b| b.1.cmp(a.1));
+    *minutes.get(0).unwrap_or(&(&0, &0))
+}
+
 fn task(s: &str) {
     let mut guards: HashMap<i32, Guard> = HashMap::new();
     let mut guard_id = None;
@@ -130,20 +136,40 @@ fn task(s: &str) {
         }
     }
 
-    let mut scores = guards.values().clone().into_iter().collect::<Vec<_>>();
-    scores.sort_by(|a, b| b.total_asleep.cmp(&a.total_asleep));
-    let sleepy_guard = scores.get(0).unwrap();
+    {
+        let mut scores = guards.values().clone().into_iter().collect::<Vec<_>>();
+        scores.sort_by(|a, b| b.total_asleep.cmp(&a.total_asleep));
+        let sleepy_guard = scores.get(0).unwrap();
 
-    let mut minutes = sleepy_guard.minutes.iter().collect::<Vec<_>>();
-    minutes.sort_by(|a, b| b.1.cmp(a.1));
-    let lucky_minute = minutes.get(0).unwrap().0;
+        let lucky_minute = sleepy_minute(sleepy_guard).0;
 
-    println!(
-        "Sleepy guard: {:?}, lucky minute: {:?}, result: {:?}",
-        sleepy_guard.id,
-        lucky_minute,
-        sleepy_guard.id * lucky_minute
-    );
+        println!("Strategy 1");
+        println!(
+            "Sleepy guard: {:?}, lucky minute: {:?}, result: {:?}",
+            sleepy_guard.id,
+            lucky_minute,
+            sleepy_guard.id * lucky_minute
+        );
+    }
+
+    {
+        let mut scores = guards.values().clone().into_iter().collect::<Vec<_>>();
+        scores.sort_by(|a, b| sleepy_minute(b).1.cmp(&sleepy_minute(a).1));
+        let sleepy_guard = scores.get(0).unwrap();
+
+        let m = sleepy_minute(sleepy_guard);
+        let lucky_minute = m.0;
+        let lucky_time = m.1;
+
+        println!("Strategy 2");
+        println!(
+            "Sleepy guard: {:?}, lucky minute: {:?}, time: {:?}, result: {:?}",
+            sleepy_guard.id,
+            lucky_minute,
+            lucky_time,
+            sleepy_guard.id * lucky_minute
+        );
+    }
 }
 
 fn main() {
