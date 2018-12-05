@@ -5,7 +5,7 @@ fn should_destroy(a: char, b: char) -> bool {
     (a != b) && (a.to_ascii_uppercase() == b.to_ascii_uppercase())
 }
 
-fn task(s: &String) {
+fn collapse(s: &String) -> usize {
     let mut from = s.trim().clone().chars().rev().collect::<String>();
     let mut to = String::new();
 
@@ -26,8 +26,35 @@ fn task(s: &String) {
         }
     }
 
-    println!("Original length: {}", s.trim().len());
-    println!("Leftover length: {}", to.len());
+    to.len()
+}
+
+fn task(s: &String) {
+    let input = s.trim().to_string();
+    let default_length = collapse(&input);
+    println!("Length by default: {}", default_length);
+
+    let chars = [
+        "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r",
+        "s", "t", "u", "v", "w", "x", "y", "z",
+    ];
+
+    let mut variants = chars
+        .iter()
+        .map(|c| {
+            let variant = input
+                .clone()
+                .replace(c, "")
+                .replace(&c.to_ascii_uppercase(), "");
+
+            collapse(&variant)
+        }).collect::<Vec<_>>();
+
+    variants.sort();
+
+    let winner = variants.get(0).unwrap();
+
+    println!("Shortest polymer: {}", winner);
 }
 
 fn main() {
