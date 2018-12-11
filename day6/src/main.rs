@@ -15,7 +15,7 @@ fn measure_distance(p1: &Point, p2: &Point) -> i32 {
     (p1.x - p2.x).abs() + (p1.y - p2.y).abs()
 }
 
-fn task(s: &str) {
+fn task1(s: &str) {
     let lines = s.lines();
     let mut points = Vec::new();
     let mut field = HashMap::new();
@@ -79,7 +79,43 @@ fn task(s: &str) {
 
     let biggest_area = areas.iter().max().unwrap();
 
-    println!("Area size: {}", biggest_area);
+    println!("Isolated area size: {}", biggest_area);
+}
+
+fn task2(s: &str) {
+    let lines = s.lines();
+    let mut points = Vec::new();
+    let mut field = Vec::new();
+
+    for line in lines {
+        let re = Regex::new(r"^(\d+),\s(\d+)$").unwrap();
+        let captures = re.captures(line).expect("Failed to capture the regexp");
+
+        let point = Point {
+            x: captures.get(1).unwrap().as_str().parse().unwrap(),
+            y: captures.get(2).unwrap().as_str().parse().unwrap(),
+        };
+
+        points.push(point);
+    }
+
+    let x_start = points.iter().map(|p| p.x).min().unwrap() - 200;
+    let x_end = points.iter().map(|p| p.x).max().unwrap() + 200;
+    let y_start = points.iter().map(|p| p.y).min().unwrap() - 200;
+    let y_end = points.iter().map(|p| p.y).max().unwrap() + 200;
+
+    for x in x_start..=x_end {
+        for y in y_start..=y_end {
+            let coord = Point { x, y };
+            let total_distance: i32 = points.iter().map(|p| measure_distance(p, &coord)).sum();
+
+            if total_distance < 10000 {
+                field.push(coord);
+            }
+        }
+    }
+
+    println!("Safe area size: {:?}", field.len());
 }
 
 fn main() {
@@ -89,5 +125,6 @@ fn main() {
     f.read_to_string(&mut contents)
         .expect("something went wrong reading the file");
 
-    task(&contents);
+    task1(&contents);
+    task2(&contents);
 }
