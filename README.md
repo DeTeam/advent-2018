@@ -9,3 +9,4 @@ Having fun, while learning some programming languages
 - Day 4: `rust`
 - Day 5: `rust`
 - Day 6: `rust`
+- Day 7: `rust`
