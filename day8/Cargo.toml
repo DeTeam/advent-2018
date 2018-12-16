@@ -1,0 +1,8 @@
+[package]
+name = "day8"
+version = "0.1.0"
+authors = ["Timur Amirov <timur.amirov@zalando.de>"]
+edition = "2018"
+
+[dependencies]
+nom = "4.1.1"
