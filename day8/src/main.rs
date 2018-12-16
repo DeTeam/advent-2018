@@ -18,12 +18,12 @@ named!(parse_head<&str,(u32, u32)>,
     )
 );
 
-named!(aggregate_meta<&str,u32>,
+named!(simple_aggregate_meta<&str,u32>,
     ws!(
         do_parse!(
             head:  parse_head >>
             children_meta: dbg!(count!(
-                aggregate_meta,
+                simple_aggregate_meta,
                 head.0 as usize
             )) >>
             own_metas: dbg!(count!(
@@ -35,10 +35,9 @@ named!(aggregate_meta<&str,u32>,
     )
 );
 
+
 fn task1(s: &str) {
-    let head = parse_head(s);
-    let result = aggregate_meta(s);
-    println!("First head: {:#?}", head);
+    let result = simple_aggregate_meta(s).unwrap().1;
     println!("Result: {:#?}", result);
 }
 
