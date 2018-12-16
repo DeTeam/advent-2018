@@ -35,10 +35,36 @@ named!(simple_aggregate_meta<&str,u32>,
     )
 );
 
+named!(indexed_aggregate_meta<&str,Vec<u32>>,
+    ws!(
+        do_parse!(
+            head:  parse_head >>
+            children_meta: dbg!(count!(
+                indexed_aggregate_meta,
+                head.0 as usize
+            )) >>
+            own_metas: dbg!(count!(
+                ws!(map_res!(digit, |x| u32::from_str(x))),
+                head.1 as usize
+            )) >>
+            (
+                if head.0 > 0 {
+                    own_metas.iter().filter_map(|&i| children_meta.get(i as usize - 1)).flatten().cloned().collect::<Vec<_>>()
+                } else {
+                    own_metas
+                }
+            )
+        )
+    )
+);
+
 
 fn task1(s: &str) {
     let result = simple_aggregate_meta(s).unwrap().1;
-    println!("Result: {:#?}", result);
+    println!("Result 1: {:#?}", result);
+
+    let result = indexed_aggregate_meta(s).unwrap().1.iter().fold(0, |acc, x| acc + x);
+    println!("Result 2: {:#?}", result);
 }
 
 fn main() {
